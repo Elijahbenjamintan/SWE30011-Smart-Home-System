@@ -20,7 +20,7 @@ ROOT_CA = "root-CA.crt"
 STATUS_TOPIC = "SWE30011/GP/entrance/status"
 COMMAND_TOPIC = "SWE30011/GP/entrance/command"
 
-TELEGRAM_BOT_TOKEN = "8889860547:AAEtfOvCC44pMERBtZUHX3KWGtOR7cKg3_w"
+TELEGRAM_BOT_TOKEN = "oopsie can't show"
 TELEGRAM_CHAT_ID = "8855546712"
 
 latest_status = {
@@ -56,7 +56,7 @@ def parse_payload(payload_text):
     return data
 
 def send_telegram_alert(message):
-    url = f"https://api.telegram.org/bot8889860547:AAEtfOvCC44pMERBtZUHX3KWGtOR7cKg3_w/sendMessage"
+    url = f"https://api.telegram.org/botoopsie can't show/sendMessage"
 
     payload = {
         "chat_id": TELEGRAM_CHAT_ID,
