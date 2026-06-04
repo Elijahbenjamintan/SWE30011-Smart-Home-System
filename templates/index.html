@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Entrance Security Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Entrance Security Node</h1>
+
+        <div class="status-grid">
+            <div class="card">
+                <h2>Distance</h2>
+                <p id="distance">-- cm</p>
+            </div>
+
+            <div class="card">
+                <h2>PIR Motion</h2>
+                <p id="pir">--</p>
+            </div>
+
+            <div class="card">
+                <h2>Ultrasonic</h2>
+                <p id="ultrasonic">--</p>
+            </div>
+
+            <div class="card">
+                <h2>Presence</h2>
+                <p id="presence">--</p>
+            </div>
+
+            <div class="card">
+                <h2>Door Lock</h2>
+                <p id="lock">--</p>
+            </div>
+
+            <div class="card">
+                <h2>Fail-safe</h2>
+                <p id="failsafe">--</p>
+            </div>
+        </div>
+        
+        <h2 class="history-title">Analytics Summary</h2>
+
+		<div class="status-grid">
+			<div class="card">
+				<h2>Total Logs</h2>
+				<p id="total_logs">--</p>
+			</div>
+
+			<div class="card">
+				<h2>Presence Events</h2>
+				<p id="total_presence">--</p>
+			</div>
+
+			<div class="card">
+				<h2>Fail-safe Events</h2>
+				<p id="total_failsafe">--</p>
+			</div>
+
+			<div class="card">
+				<h2>Unlocked Logs</h2>
+				<p id="total_unlocked">--</p>
+			</div>
+		</div>
+
+		<h2 class="history-title">Entrance Distance Graph</h2>
+
+		<div class="chart-box">
+			<canvas id="distanceChart"></canvas>
+		</div>
+
+        <div class="controls">
+            <button onclick="sendCommand('lock')" class="lock-btn">
+                Lock Door
+            </button>
+
+            <button onclick="sendCommand('unlock')" class="unlock-btn">
+                Unlock Door
+            </button>
+        </div>
+        
+        <h2 class="history-title">Recent Entrance Logs</h2>
+
+		<table>
+			<thead>
+				<tr>
+					<th>Time</th>
+					<th>Distance</th>
+					<th>PIR</th>
+					<th>Ultrasonic</th>
+					<th>Presence</th>
+					<th>Lock</th>
+					<th>Fail-safe</th>
+				</tr>
+			</thead>
+			<tbody id="history-table">
+			</tbody>
+		</table>
+
+        <p class="last-update">
+            Last Update: <span id="last_update">--</span>
+        </p>
+    </div>
+
+    <script>
+        async function fetchStatus() {
+            const response = await fetch("/api/status");
+            const data = await response.json();
+
+            document.getElementById("distance").innerText = data.distance + " cm";
+            document.getElementById("pir").innerText = data.pir === "1" ? "Motion Detected" : "No Motion";
+            document.getElementById("ultrasonic").innerText = data.ultrasonic === "1" ? "Object Near" : "Clear";
+            document.getElementById("presence").innerText = data.presence === "1" ? "Detected" : "Not Detected";
+            document.getElementById("lock").innerText = data.lock;
+            document.getElementById("failsafe").innerText = data.failsafe === "1" ? "ACTIVE" : "Normal";
+            document.getElementById("last_update").innerText = data.last_update;
+        }
+
+        async function sendCommand(command) {
+            await fetch("/api/command", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify({ command: command })
+            });
+
+            fetchStatus();
+        }
+
+        setInterval(fetchStatus, 300);
+        fetchStatus();
+        
+        async function fetchHistory() {
+        const response = await fetch("/api/history");
+        const logs = await response.json();
+
+        const table = document.getElementById("history-table");
+        table.innerHTML = "";
+
+        logs.forEach(log => {
+            const row = `
+                <tr>
+                    <td>${log.timestamp}</td>
+                    <td>${log.distance} cm</td>
+                    <td>${log.pir === 1 ? "Motion" : "No Motion"}</td>
+                    <td>${log.ultrasonic === 1 ? "Near" : "Clear"}</td>
+                    <td>${log.presence === 1 ? "Detected" : "None"}</td>
+                    <td>${log.lock_status}</td>
+                    <td>${log.failsafe === 1 ? "Active" : "Normal"}</td>
+                </tr>
+            `;
+            table.innerHTML += row;
+        });
+    }
+
+    setInterval(fetchHistory, 3000);
+    fetchHistory();
+    
+    let distanceChart = null;
+
+	async function fetchAnalytics() {
+		const response = await fetch("/api/analytics");
+		const data = await response.json();
+
+		document.getElementById("total_logs").innerText = data.total_logs;
+		document.getElementById("total_presence").innerText = data.total_presence;
+		document.getElementById("total_failsafe").innerText = data.total_failsafe;
+		document.getElementById("total_unlocked").innerText = data.total_unlocked;
+	}
+
+	async function fetchChartData() {
+		const response = await fetch("/api/chart-data");
+		const logs = await response.json();
+
+		const labels = logs.map(log => log.timestamp);
+		const distances = logs.map(log => log.distance);
+
+		const ctx = document.getElementById("distanceChart").getContext("2d");
+
+		if (distanceChart) {
+			distanceChart.destroy();
+		}
+
+		distanceChart = new Chart(ctx, {
+			type: "line",
+			data: {
+				labels: labels,
+				datasets: [{
+					label: "Distance (cm)",
+					data: distances,
+					tension: 0.3
+				}]
+			},
+			options: {
+				responsive: true,
+				scales: {
+					y: {
+						beginAtZero: true
+					}
+				}
+			}
+		});
+	}
+
+	setInterval(fetchAnalytics, 3000);
+	setInterval(fetchChartData, 5000);
+
+	fetchAnalytics();
+	fetchChartData();
+    </script>
+
+</body>
+</html>
