@@ -22,7 +22,7 @@ NODE1_COMMAND_TOPIC = "SWE30011/GP/node1/command"
 NODE2_STATUS_TOPIC = "SWE30011/GP/entrance/status"
 NODE2_COMMAND_TOPIC = "SWE30011/GP/entrance/command"
 
-TELEGRAM_BOT_TOKEN = "8889860547:AAEtfOvCC44pMERBtZUHX3KWGtOR7cKg3_w"
+TELEGRAM_BOT_TOKEN = "oopsie can't show"
 TELEGRAM_CHAT_ID = "8855546712"
 
 latest_nodes = {
@@ -72,10 +72,10 @@ def parse_payload(payload_text):
     return data
 
 def send_telegram_alert(message):
-    if TELEGRAM_BOT_TOKEN == "8889860547:AAEtfOvCC44pMERBtZUHX3KWGtOR7cKg3_w":
+    if TELEGRAM_BOT_TOKEN == "oopsie can't show":
         return
 
-    url = f"https://api.telegram.org/bot{8889860547:AAEtfOvCC44pMERBtZUHX3KWGtOR7cKg3_w}/sendMessage"
+    url = f"https://api.telegram.org/bot{oopsie can't show}/sendMessage"
 
     payload = {
         "chat_id": TELEGRAM_CHAT_ID,
