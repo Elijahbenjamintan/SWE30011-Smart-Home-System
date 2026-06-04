@@ -1,0 +1,80 @@
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+}
+
+.container {
+    max-width: 1200px;
+    margin: 30px auto;
+    padding: 20px;
+}
+
+h1, h2 {
+    text-align: center;
+}
+
+.node-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 25px;
+}
+
+.node-card {
+    background: white;
+    padding: 25px;
+    border-radius: 14px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.12);
+}
+
+.node-card p {
+    font-size: 18px;
+}
+
+.last {
+    font-size: 14px;
+    color: #555;
+}
+
+button {
+    padding: 12px 18px;
+    margin: 6px;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    background: #34495e;
+    color: white;
+}
+
+.lock-btn {
+    background: #c0392b;
+}
+
+.unlock-btn {
+    background: #27ae60;
+}
+
+table {
+    width: 100%;
+    margin-top: 20px;
+    border-collapse: collapse;
+    background: white;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+th, td {
+    padding: 12px;
+    border-bottom: 1px solid #ddd;
+    text-align: left;
+}
+
+th {
+    background: #2c3e50;
+    color: white;
+}
+
+pre {
+    white-space: pre-wrap;
+    font-size: 13px;
+}

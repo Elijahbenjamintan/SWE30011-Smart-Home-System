@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Unified Smart Home Dashboard</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+
+<div class="container">
+    <h1>Unified Smart Home Cloud Dashboard</h1>
+
+    <div class="node-grid">
+
+        <div class="node-card">
+            <h2>Living Room Comfort Node</h2>
+            <p>Temperature: <span id="node1-temperature">--</span></p>
+            <p>Light Level: <span id="node1-light">--</span></p>
+            <p>Motion: <span id="node1-motion">--</span></p>
+            <p>Fan: <span id="node1-fan">--</span></p>
+            <p>LED: <span id="node1-led">--</span></p>
+            <p class="last">Last Update: <span id="node1-last">--</span></p>
+
+            <button onclick="sendCommand('node1', 'fan_on')">Fan On</button>
+            <button onclick="sendCommand('node1', 'fan_off')">Fan Off</button>
+            <button onclick="sendCommand('node1', 'light_on')">Light On</button>
+            <button onclick="sendCommand('node1', 'light_off')">Light Off</button>
+        </div>
+
+        <div class="node-card">
+            <h2>Entrance Security Node</h2>
+            <p>Distance: <span id="node2-distance">--</span> cm</p>
+            <p>PIR: <span id="node2-pir">--</span></p>
+            <p>Ultrasonic: <span id="node2-ultrasonic">--</span></p>
+            <p>Presence: <span id="node2-presence">--</span></p>
+            <p>Lock: <span id="node2-lock">--</span></p>
+            <p>Fail-safe: <span id="node2-failsafe">--</span></p>
+            <p class="last">Last Update: <span id="node2-last">--</span></p>
+
+            <button class="lock-btn" onclick="sendCommand('node2', 'lock')">Lock Door</button>
+            <button class="unlock-btn" onclick="sendCommand('node2', 'unlock')">Unlock Door</button>
+        </div>
+
+    </div>
+
+    <h2>Recent Cloud Logs</h2>
+
+    <table>
+        <thead>
+            <tr>
+                <th>Time</th>
+                <th>Node</th>
+                <th>Payload</th>
+            </tr>
+        </thead>
+        <tbody id="history-table"></tbody>
+    </table>
+</div>
+
+<script>
+async function fetchNodes() {
+    const response = await fetch("/api/nodes");
+    const data = await response.json();
+
+    const node1 = data.node1;
+    const node2 = data.node2;
+
+    document.getElementById("node1-temperature").innerText = node1.temperature ?? "--";
+    document.getElementById("node1-light").innerText = node1.light ?? "--";
+    document.getElementById("node1-motion").innerText = node1.motion === "1" ? "Detected" : "None";
+    document.getElementById("node1-fan").innerText = node1.fan ?? "unknown";
+    document.getElementById("node1-led").innerText = node1.led ?? "unknown";
+    document.getElementById("node1-last").innerText = node1.last_update;
+
+    document.getElementById("node2-distance").innerText = node2.distance ?? "--";
+    document.getElementById("node2-pir").innerText = node2.pir === "1" ? "Motion" : "No Motion";
+    document.getElementById("node2-ultrasonic").innerText = node2.ultrasonic === "1" ? "Near" : "Clear";
+    document.getElementById("node2-presence").innerText = node2.presence === "1" ? "Detected" : "None";
+    document.getElementById("node2-lock").innerText = node2.lock ?? "unknown";
+    document.getElementById("node2-failsafe").innerText = node2.failsafe === "1" ? "ACTIVE" : "Normal";
+    document.getElementById("node2-last").innerText = node2.last_update;
+}
+
+async function sendCommand(nodeId, command) {
+    await fetch(`/api/command/${nodeId}`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ command: command })
+    });
+
+    fetchNodes();
+}
+
+async function fetchHistory() {
+    const response = await fetch("/api/history");
+    const logs = await response.json();
+
+    const table = document.getElementById("history-table");
+    table.innerHTML = "";
+
+    logs.forEach(log => {
+        const row = `
+            <tr>
+                <td>${log.timestamp}</td>
+                <td>${log.node_name}</td>
+                <td><pre>${log.payload}</pre></td>
+            </tr>
+        `;
+        table.innerHTML += row;
+    });
+}
+
+setInterval(fetchNodes, 1000);
+setInterval(fetchHistory, 3000);
+
+fetchNodes();
+fetchHistory();
+</script>
+
+</body>
+</html>
