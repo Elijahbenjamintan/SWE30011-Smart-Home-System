@@ -3,6 +3,7 @@
 <head>
     <title>Unified Smart Home Dashboard</title>
     <link rel="stylesheet" href="/static/style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 </head>
 <body>
 
@@ -40,6 +41,17 @@
             <button class="unlock-btn" onclick="sendCommand('node2', 'unlock')">Unlock Door</button>
         </div>
 
+    </div>
+
+    <h2>Node Correlation Timeline</h2>
+
+    <p>
+    Node 2 PIR motion events compared against
+    Node 1 LED activation state.
+    </p>
+
+    <div class="chart-box">
+        <canvas id="correlationChart"></canvas>
     </div>
 
     <h2>Recent Cloud Logs</h2>
@@ -111,11 +123,69 @@ async function fetchHistory() {
     });
 }
 
+let correlationChart = null;
+
+async function fetchCorrelation() {
+
+    const response = await fetch("/api/correlation");
+    const logs = await response.json();
+
+    const labels =
+        logs.map(item => item.timestamp);
+
+    const pir =
+        logs.map(item => item.pir);
+
+    const led =
+        logs.map(item => item.led);
+
+    const ctx =
+        document.getElementById("correlationChart")
+        .getContext("2d");
+
+    if (correlationChart) {
+        correlationChart.destroy();
+    }
+
+    correlationChart = new Chart(ctx, {
+        type: "line",
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: "Node 2 PIR Motion",
+                    data: pir,
+                    stepped: true
+                },
+                {
+                    label: "Node 1 LED State",
+                    data: led,
+                    stepped: true
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            scales: {
+                y: {
+                    min: 0,
+                    max: 1,
+                    ticks: {
+                        stepSize: 1
+                    }
+                }
+            }
+        }
+    });
+}
+
 setInterval(fetchNodes, 1000);
 setInterval(fetchHistory, 3000);
+setInterval(fetchCorrelation, 5000);
 
 fetchNodes();
 fetchHistory();
+fetchCorrelation();
 </script>
 
 </body>
