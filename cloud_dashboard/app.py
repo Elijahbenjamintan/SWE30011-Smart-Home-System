@@ -49,6 +49,8 @@ latest_nodes = {
     }
 }
 
+correlation_history = []
+
 last_node2_alert = {
     "presence": "0",
     "lock": "unknown",
@@ -72,10 +74,8 @@ def parse_payload(payload_text):
     return data
 
 def send_telegram_alert(message):
-    if TELEGRAM_BOT_TOKEN == "oopsie can't show":
-        return
 
-    url = f"https://api.telegram.org/bot{oopsie can't show}/sendMessage"
+    url = f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage"
 
     payload = {
         "chat_id": TELEGRAM_CHAT_ID,
@@ -120,12 +120,34 @@ def update_node(node_id, node_name, payload_text):
 
     latest_nodes[node_id].update(data)
 
+    # Build correlation record whenever either node updates
+
+    latest_nodes[node_id].update(data)
+
+    # Correlation analytics
+    if node_id == "node2":
+
+        correlation_record = {
+            "timestamp": time.strftime("%H:%M:%S"),
+            "pir": int(latest_nodes["node2"].get("pir", 0)),
+            "led": 1 if str(
+                latest_nodes["node1"].get("led", "off")
+            ).lower() in ["on", "1"] else 0
+        }
+
+        correlation_history.append(correlation_record)
+
+        if len(correlation_history) > 50:
+            correlation_history.pop(0)
+
+    # Save ALL node logs
     insert_node_log(
         node_id=node_id,
         node_name=node_name,
         payload=json.dumps(data)
     )
 
+    # Telegram alerts only for Node 2
     if node_id == "node2":
         handle_node2_alerts(data)
 
@@ -185,6 +207,10 @@ def get_node_status(node_id):
 @app.route("/api/history")
 def history():
     return jsonify(get_recent_logs(20))
+
+@app.route("/api/correlation")
+def correlation():
+    return jsonify(correlation_history)
 
 @app.route("/api/command/<node_id>", methods=["POST"])
 def send_command(node_id):
